@@ -1,12 +1,10 @@
-# Incluir apenas as pastas dashboard e login
-# Excluir todos os outros arquivos na raiz
+# HPX Miner Dashboard - Include only hpx-miner-app
 
-# Excluir todos os arquivos na raiz
+# Exclude all files in root by default
 /*
 
-# Incluir apenas as pastas específicas
-!/dashboard/
-!/login/
+# Include only the main application folder
+!/hpx-miner-app/
 !/.gitignore
 
 # Excluir node_modules em qualquer lugar
