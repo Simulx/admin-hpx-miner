@@ -1,51 +1,22 @@
 {
-  "name": "hpx-miner-dashboard",
+  "name": "hpx-miner-monorepo",
+  "version": "1.0.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "packageManager": "npm@10.5.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@radix-ui/react-avatar": "*",
-    "@radix-ui/react-dialog": "*",
-    "@radix-ui/react-label": "*",
-    "@radix-ui/react-popover": "*",
-    "@radix-ui/react-progress": "*",
-    "@radix-ui/react-scroll-area": "*",
-    "@radix-ui/react-select": "*",
-    "@radix-ui/react-separator": "*",
-    "@radix-ui/react-slot": "*",
-    "@radix-ui/react-switch": "*",
-    "@radix-ui/react-tabs": "*",
-    "@radix-ui/react-tooltip": "*",
-    "class-variance-authority": "*",
-    "clsx": "*",
-    "cmdk": "*",
-    "lucide-react": "*",
-    "next-themes": "*",
-    "react": "*",
-    "react-dom": "*",
-    "react-router-dom": "*",
-    "sonner": "*",
-    "tailwind-merge": "*"
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "changeset": "changeset",
+    "release": "turbo run build --filter=...[changeset-dependent] && changeset publish"
   },
   "devDependencies": {
-    "@types/react": "*",
-    "@types/react-dom": "*",
-    "@typescript-eslint/eslint-plugin": "*",
-    "@typescript-eslint/parser": "*",
-    "@vitejs/plugin-react": "*",
-    "autoprefixer": "*",
-    "eslint": "*",
-    "eslint-plugin-react-hooks": "*",
-    "eslint-plugin-react-refresh": "*",
-    "postcss": "*",
-    "tailwindcss": "*",
-    "typescript": "*",
-    "vite": "*"
+    "turbo": "^2.0.6",
+    "@changesets/cli": "^2.27.1"
   }
 }
