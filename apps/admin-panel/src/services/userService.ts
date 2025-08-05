@@ -15,6 +15,8 @@ export interface User {
   criadoEm: string;
 }
 
+import { supabase } from '../utils/supabaseClient';
+
 export const userService = {
   async healthCheck(): Promise<boolean> {
     return true;
@@ -34,5 +36,37 @@ export const userService = {
 
   async updateUserStatus(userId: string, status: string): Promise<void> {
     return;
+  },
+
+  async loginAdmin(email: string, password: string): Promise<User> {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!data.user) {
+      throw new Error('Login failed, no user data returned.');
+    }
+
+    const { data: userProfile, error: profileError } = await supabase
+      .from('User')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
+
+    if (profileError) {
+      throw new Error(profileError.message);
+    }
+
+    if (!userProfile || !userProfile.isAdmin) {
+      await supabase.auth.signOut();
+      throw new Error('Access denied. Not an administrator.');
+    }
+
+    return userProfile as User;
   }
 };

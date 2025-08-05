@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { 
   Home, 
   Plus, 
@@ -55,6 +57,8 @@ export function ModernSidebar({
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [showAdminItems, setShowAdminItems] = useState(false);
+  const navigate = useNavigate();
+  const { logout: adminLogout } = useAdminAuth();
 
   const ADMIN_PIN = 'Miner369$';
 
@@ -114,8 +118,8 @@ export function ModernSidebar({
   };
 
   const handleLogout = () => {
-    // Implementar lógica de logout
-    console.log('Logout');
+    adminLogout();
+    navigate('/login');
   };
 
   const sidebarWidth = isMobile ? 'w-80' : (isExpanded ? 'w-64' : 'w-20');

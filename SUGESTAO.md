@@ -1,67 +1,70 @@
-Analisei todos os arquivos que você me pediu, focando naqueles que são cruciais para o funcionamento do CSS no seu projeto admin-panel. Entendo perfeitamente a sua frustração e, após uma revisão detalhada, acredito ter encontrado a causa raiz do problema.
+Aqui está um plano detalhado para conectar a aplicação ao seu banco de dados Supabase de forma segura e estruturada, utilizando as informações que você forneceu. Este plano foi projetado para que possamos consultar o MCP do Supabase em cada etapa para garantir que não haja problemas.
 
-Não se preocupe, a estrutura do seu projeto é boa e o problema parece ser um pequeno erro de configuração que é fácil de corrigir.
+Plano de Integração com Supabase
 
-Aqui está o meu relatório completo:
+Fase 1: Configuração Segura do Ambiente
 
-Relatório de Análise do Projeto Dashboard-Nova
-Resumo do Problema (TL;DR)
-O problema principal está no arquivo de configuração do Tailwind CSS (apps/admin-panel/tailwind.config.cjs). Os caminhos definidos na propriedade content não estão corretos, o que impede o Tailwind de "enxergar" os arquivos dos seus componentes e páginas. Como resultado, as classes de estilo que você usa nesses arquivos não são geradas no arquivo CSS final, e o site aparece sem a maior parte da estilização.
+1.
+Criar Arquivo de Ambiente (.env):
 
-Análise Detalhada dos Arquivos
-apps/admin-panel/tailwind.config.cjs (O Ponto Crítico)
+Ação: Criar um arquivo .env na raiz do projeto apps/admin-panel.
+Conteúdo: Adicionar as chaves da API do Supabase a este arquivo para evitar expô-las no código-fonte.
+PlainText
 
-Análise: Este arquivo diz ao Tailwind quais arquivos ele deve monitorar para encontrar as classes de utilitários (como bg-blue-500, text-center, etc.).
-Problema Encontrado: A configuração content está assim:
-content: [
-  "./src/**/*.{js,ts,jsx,tsx}",
-  "./components/**/*.{js,ts,jsx,tsx}", // <-- Incorreto
-  "./pages/**/*.{js,ts,jsx,tsx}",      // <-- Incorreto
-  "./*.{js,ts,jsx,tsx}"
-],
-Explicação: Os caminhos "./components/..." e "./pages/..." estão errados. Eles fazem o Tailwind procurar por pastas components e pages na raiz do admin-panel, mas na sua estrutura de projeto, essas pastas estão dentro da pasta src. O Tailwind não está encontrando seus componentes e, portanto, não gera o CSS para eles.
-apps/admin-panel/src/globals.css
 
-Análise: Este é o seu arquivo CSS principal. Ele contém as diretivas @tailwind e as variáveis de cor customizadas (como --hpx-primary).
-Diagnóstico: O arquivo está correto. A estrutura com :root e as variáveis CSS está perfeita para o uso com o Tailwind.
-apps/admin-panel/src/main.tsx
 
-Análise: Este é o ponto de entrada da sua aplicação React.
-Diagnóstico: O arquivo está correto. A linha import './globals.css'; está presente e garante que seus estilos globais e do Tailwind sejam carregados na aplicação.
-apps/admin-panel/vite.config.ts e postcss.config.cjs
+VITE_SUPABASE_URL=https://jgpejuslqudqmkbiryak.supabase.coVITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncGVqdXNscXVkcW1rYmlyeWFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxNjI2MzEsImV4cCI6MjA2OTczODYzMX0._pO5aYGvZkE0_CDhsmM9h8gYG_gtIceWHf2BMe_RIP4
+Verificação com MCP: Podemos confirmar se o Vite está configurado para ler variáveis de ambiente com o prefixo VITE_.
+2.
+Atualizar .gitignore:
 
-Análise: São os arquivos de configuração para o Vite (seu servidor de desenvolvimento e empacotador) и PostCSS (a ferramenta que processa o Tailwind).
-Diagnóstico: Ambos os arquivos parecem estar corretos e configurados de forma padrão para um projeto React com Tailwind.
-package.json (Raiz e admin-panel)
+Ação: Adicionar a linha *.env ao arquivo .gitignore na raiz do projeto.
+Objetivo: Garantir que o arquivo com as chaves secretas nunca seja enviado para o repositório Git.
+Verificação com MCP: Não aplicável, é uma ação local do Git.
+Fase 2: Inicialização do Cliente Supabase
 
-Análise: Verifiquei as dependências do projeto.
-Diagnóstico: Todas as dependências necessárias (tailwindcss, postcss, autoprefixer, react, vite) estão listadas. Está tudo correto.
-apps/admin-panel/src/App.tsx (Sugestão de Melhoria)
+1.
+Criar Cliente Supabase Centralizado:
+Ação: Criar um novo arquivo em packages/services/supabase/client.ts.
+Objetivo: Configurar e exportar uma única instância do cliente Supabase para ser usada em toda a aplicação. Isso centraliza a configuração e facilita a manutenção.
+Código de Exemplo:
+TypeScript
 
-Análise: Este é o seu componente principal que define as rotas.
-Diagnóstico: Notei uma pequena redundância. Os provedores LanguageProvider e AdminAuthProvider estão sendo usados duas vezes, um dentro do outro. Isso não quebra o CSS, mas é um código desnecessário que pode ser limpo.
-export default function App() {
-  return (
-    <LanguageProvider> // <-- Provedor 1
-      <AdminAuthProvider> // <-- Provedor 2
-        <Routes>
-          {/* ... rotas ... */}
-        </Routes>
-      </AdminAuthProvider>
-    </LanguageProvider>
-  );
-}
-Eles já são aplicados no main.tsx, então não precisam ser repetidos aqui.
-Plano de Ação (O que fazer para corrigir)
-Com base na análise, aqui está o plano para resolver o problema. Eu posso fazer essas alterações para você se me permitir.
 
-Corrigir o tailwind.config.cjs:
 
-Alterar os caminhos na propriedade content para que apontem para as pastas corretas dentro de src.
-Limpar o App.tsx (Opcional, mas recomendado):
+import { createClient } from '@supabase/supabase-js';const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;if (!supabaseUrl || !supabaseAnonKey) {  throw new Error('Supabase URL   and Anon Key must be defined   in .env file');}export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+Verificação com MCP: Podemos usar o MCP para search_docs e encontrar a documentação mais recente sobre how to initialize the client (createClient) para garantir que estamos usando as melhores práticas.
+Fase 3: Refatoração dos Serviços de API
 
-Remover os LanguageProvider e AdminAuthProvider redundantes do arquivo App.tsx para deixar o código mais limpo.
-Reinstalar e Rodar:
+1.
+Analisar e Substituir Mocks:
 
-Após as correções, rodar npm install por segurança (para garantir que tudo está sincronizado) e depois npm run dev para iniciar o servidor de desenvolvimento.
-Estou confiante de que, com esses ajustes, o CSS voltará a funcionar como esperado e você verá seu dashboard com a estilização correta.
+Ação: Investigar os diretórios em packages/services e apps/admin-panel/src/hooks para identificar onde os dados falsos (mocks) ou a lógica de API antiga estão sendo usados (ex: useAdminAuth.tsx).
+Objetivo: Mapear todas as chamadas de dados que precisam ser substituídas por chamadas reais ao Supabase.
+2.
+Implementar Serviços Reais:
+
+Ação: Modificar ou criar novos serviços (ex: packages/services/auth/adminService.ts) que importam o supabase client e implementam a lógica de comunicação com o banco de dados.
+Exemplo (Autenticação):
+TypeScript
+
+
+
+import { supabase } from '../supabase/client';export const signInWithPassword = async (email, password) => {  const { data, error } = await   supabase.auth.signInWithPassword  ({    email: email,    password: password,  });  return { data, error };};
+Verificação com MCP: Para cada tabela que vamos acessar (users, investments, etc.), podemos usar list_tables para confirmar o nome exato e get_advisors com o tipo security para verificar se a tabela possui RLS (Row Level Security) ativada e se há políticas de acesso recomendadas.
+Fase 4: Integração com a Interface do Usuário (UI)
+
+1.
+Conectar Componentes aos Novos Serviços:
+Ação: Atualizar os componentes React e hooks para que chamem os novos serviços da API do Supabase em vez dos mocks.
+Exemplo (Formulário de Login): O componente AdminLoginForm.tsx passaria a chamar a função signInWithPassword do nosso novo serviço de autenticação.
+Objetivo: Fazer com que a aplicação leia e escreva dados do banco de dados real.
+Fase 5: Verificação e Segurança Contínua com MCP
+
+1.
+Consultar Logs:
+Ação: Durante o desenvolvimento e teste, se encontrarmos erros, podemos usar get_logs no MCP para buscar logs específicos (api, postgres, auth) e depurar problemas em tempo real.
+2.
+Gerar Tipos TypeScript:
+Ação: Após definir o esquema do banco de dados, podemos usar generate_typescript_types para criar automaticamente as definições de tipo para nossas tabelas. Isso garante que nosso código front-end esteja sempre sincronizado com a estrutura do banco de dados, evitando erros.
+Este plano nos permite avançar de forma incremental e segura. Por favor, revise e me diga se está de acordo para que possamos começar com a primeira fase.

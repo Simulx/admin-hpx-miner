@@ -40,7 +40,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { data, error } = await supabase.functions.invoke('auth/admin-login', {
+      const { data, error } = await supabase.functions.invoke('admin-login', {
         body: { email, password },
       });
 
