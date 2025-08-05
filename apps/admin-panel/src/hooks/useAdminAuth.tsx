@@ -1,11 +1,10 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { supabase } from "../utils/supabaseClient"; // Import the client
+import { User } from "../services/userService"; // Import User type
 
-interface AdminUser {
-  id: string;
-  email: string;
-  name?: string;
-  role: 'admin';
-}
+// Use the User interface from userService, it's more complete
+// We can rename it to AdminUser if needed for clarity in this context
+type AdminUser = User;
 
 interface AdminAuthContextType {
   user: AdminUser | null;
@@ -41,51 +40,42 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Simulate admin login validation
-      // In real implementation, this would check against admin database
-      
-      // Normalize email for comparison (trim and lowercase)
-      const normalizedEmail = email.trim().toLowerCase();
-      const normalizedPassword = password.trim();
-      
-      console.log('Tentativa de login:', { email: normalizedEmail, password: normalizedPassword });
-      
-      // Accept multiple admin credential variations
-      const validCredentials = [
-        { email: 'admin@hpxminer.com', password: 'Admin123!' },
-        { email: 'administrator@hpxminer.com', password: 'Admin123!' },
-        { email: 'admin@hpx.com', password: 'Admin123!' }
-      ];
-      
-      const isValidCredential = validCredentials.some(cred => 
-        cred.email === normalizedEmail && cred.password === normalizedPassword
-      );
-      
-      if (isValidCredential) {
-        const adminUser: AdminUser = {
-          id: 'admin-1',
-          email: normalizedEmail,
-          name: 'HPX Administrator',
-          role: 'admin'
-        };
+      const { data, error } = await supabase.functions.invoke('auth/admin-login', {
+        body: { email, password },
+      });
 
-        // Store temporary credentials and require 2FA
-        setTempCredentials({ email: normalizedEmail, password: normalizedPassword });
-        setRequiresTwoFactor(true);
-        
-        // Store partial session
-        localStorage.setItem('admin_user', JSON.stringify(adminUser));
-        localStorage.setItem('admin_two_factor_completed', 'false');
-        
-        console.log('Login bem-sucedido, requerendo 2FA');
-        return { success: true };
-      } else {
-        console.log('Credenciais inválidas');
-        return { success: false, error: 'Credenciais de administrador inválidas. Verifique email e senha.' };
+      if (error) {
+        throw new Error(error.message);
       }
-    } catch (error) {
+
+      if (data.error) {
+        return { success: false, error: data.error };
+      }
+
+      // On successful function invocation, get user details from the database
+      const { data: userProfile, error: profileError } = await supabase
+        .from('User')
+        .select('*')
+        .eq('id', data.userId)
+        .single();
+
+      if (profileError) {
+        throw new Error(profileError.message);
+      }
+
+      // Store temporary credentials and require 2FA
+      setTempCredentials({ email, password });
+      setRequiresTwoFactor(true);
+
+      // Store partial session
+      localStorage.setItem('admin_user', JSON.stringify(userProfile));
+      localStorage.setItem('admin_two_factor_completed', 'false');
+
+      return { success: true };
+
+    } catch (error: any) {
       console.error('Erro no login admin:', error);
-      return { success: false, error: 'Erro de conexão. Tente novamente.' };
+      return { success: false, error: error.message || 'Erro de conexão. Tente novamente.' };
     }
   };
 
